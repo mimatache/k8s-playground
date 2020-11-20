@@ -1,0 +1,41 @@
+name: Master
+
+on:
+  push:
+    branches: [ master ]
+  pull_request: {}
+
+jobs:
+  # Runs the linter
+  golangci:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
+          version: v1.30
+
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Unit Tests
+        run: |
+          make run-tests
+
+  kind:
+    name: kind
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - uses: engineerd/setup-kind@v0.5.0
+      - name: Testing
+        run: |
+          kubectl cluster-info
+          kubectl get pods -n kube-system
+          echo "current-context:" $(kubectl config current-context)
+          echo "environment-kubeconfig:" ${KUBECONFIG}
